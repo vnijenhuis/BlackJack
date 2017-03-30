@@ -1,85 +1,74 @@
 ﻿using System;
 using System.Collections.Generic;
 
-public class Dealer
+namespace BlackJack
 {
-
-    public List<Card> DealerCards { get; set; }
-    public Int32 HandValue { get; set; }
-    public Int32 OpenCardValue { get; set; }
-
-    public Dealer()
+    public class Dealer
     {
-        this.DealerCards = new List<Card>();
-        this.HandValue = 0;
-        this.OpenCardValue = 0;
-    }
 
-    internal void DrawStartingHands(Player player, Deck blackJackDeck)
-    {
-        for (int i = 0; i < 3; i++)
+        public List<Card> DealerCards { get; set; }
+        public Int32 HandValue { get; set; }
+        public Int32 OpenCardValue { get; set; }
+
+        public Dealer()
         {
-            Card card = blackJackDeck.DrawCard();
-            if (i == 1)
+            this.DealerCards = new List<Card>();
+            this.HandValue = 0;
+            this.OpenCardValue = 0;
+        }
+
+        public void ResetHand()
+        {
+            this.HandValue = 0;
+            this.OpenCardValue = 0;
+            this.DealerCards = new List<Card>();
+        }
+
+        public void Hit(Deck blackjackDeck)
+        {
+            if (this.HandValue <= 16)
             {
-                this.HandValue += card.CardValue;
-            } else
-            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Card card = blackjackDeck.DrawCard();
+                Console.WriteLine("Dealer Drawn card: " + card.CardValue + " : " + card.CardName);
+                this.DealerCards.Add(card);
                 if (card.ValueName.Equals("Ace"))
                 {
-                    Console.WriteLine("You drawed {0}! Do you want the value to be 1 or 10?", card.CardName);
-                    card.CardValue = int.Parse(Console.ReadLine());
-                    player.HandValue += card.CardValue;
+                    if (this.HandValue >= 10)
+                    {
+                        card.CardValue = 11;
+                    }
+                    else
+                    {
+                        card.CardValue = 1;
+                    }
+                }
+                this.HandValue += card.CardValue;
+                Console.ResetColor();
+            }
+        }
+
+        public void OpenCard(Deck blackjackDeck)
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine("Open card");
+            Card card = blackjackDeck.DrawCard();
+            this.DealerCards.Add(card);
+            if (card.ValueName.Equals("Ace"))
+            {
+                if (this.HandValue <= 10)
+                {
+                    card.CardValue = 11;
                 }
                 else
                 {
-                    Console.WriteLine("You drawed {0}!", card.CardName);
-                    player.HandValue += card.CardValue;
+                    card.CardValue = 1;
                 }
             }
-        }
-    }
-
-    public void ResetHand()
-    {
-        this.HandValue = 0;
-        this.OpenCardValue = 0;
-        this.DealerCards = new List<Card>();
-    }
-
-    public void Hit(Deck blackjackDeck)
-    {
-        Card card = blackjackDeck.DrawCard();
-        this.DealerCards.Add(card);
-        if (card.ValueName.Equals("Ace"))
-        {
-            Console.WriteLine("You drawed {0}! Do you want the value to be 1 or 10?", card.CardName);
-            card.CardValue = int.Parse(Console.ReadLine());
             this.HandValue += card.CardValue;
-        }
-        else
-        {
-            Console.WriteLine("You drawed {0}!", card.CardName);
-            this.HandValue += card.CardValue;
-        }
-    }
-
-    public void OpenCard(Deck blackjackDeck)
-    {
-        Card card = blackjackDeck.DrawCard();
-        this.DealerCards.Add(card);
-        if (card.ValueName.Equals("Ace"))
-        {
-            Console.WriteLine("You drawed {0}! Do you want the value to be 1 or 10?", card.CardName);
-            card.CardValue = int.Parse(Console.ReadLine());
-            this.HandValue += card.CardValue;
-            this.OpenCardValue = card.CardValue;
-        }
-        else
-        {
-            Console.WriteLine("You drawed {0}!", card.CardName);
-            this.HandValue += card.CardValue;
-            this.OpenCardValue = card.CardValue;
+            this.OpenCardValue += card.CardValue;
+            Console.WriteLine("The Dealers Open card is {0} with a value of {1}!", card.CardName, card.CardValue);
+            Console.ResetColor();
         }
     }
 }

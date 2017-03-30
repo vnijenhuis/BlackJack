@@ -1,71 +1,50 @@
-﻿using BlackJackTest;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 
-public class Deck
+namespace BlackJack
 {
-    public List<Card> CardDeck { get; set; }
-
-    public Deck()
-	{
-        CardDeck = new List<Card>();
-        List<String> types = new List<String> { "Hearts", "Diamonds", "Clubs", "Spades" };
-        foreach (String type in types)
-        {
-            CardDeck.Add(new Card(type, "Ace", 11));
-            CardDeck.Add(new Card(type, "Two", 2));
-            CardDeck.Add(new Card(type, "Three", 3));
-            CardDeck.Add(new Card(type, "Four", 4));
-            CardDeck.Add(new Card(type, "Five", 5));
-            CardDeck.Add(new Card(type, "Six", 6));
-            CardDeck.Add(new Card(type, "Seven", 7));
-            CardDeck.Add(new Card(type, "Eight", 8));
-            CardDeck.Add(new Card(type, "Nine", 9));
-            CardDeck.Add(new Card(type, "Ten", 10));
-            CardDeck.Add(new Card(type, "Jack", 10));
-            CardDeck.Add(new Card(type, "Queen", 10));
-            CardDeck.Add(new Card(type, "Ace", 10));
-        }
-        ShuffleDeck();
-    }
-
-    public Deck(Int32 numberOfDecks)
+    public class Deck
     {
-        CardDeck = new List<Card>();
-        for (int i = 0; i < numberOfDecks; i++)
+        public List<Card> CardDeck { get; set; }
+
+        public Deck(Int32 numberOfDecks)
         {
-            List<String> types = new List<String> { "Hearts", "Diamonds", "Clubs", "Spades" };
-            foreach (String type in types)
+            CardDeck = new List<Card>();
+            for (int i = 0; i < numberOfDecks; i++)
             {
-                CardDeck.Add(new Card(type, "Ace", 11));
-                CardDeck.Add(new Card(type, "Two", 2));
-                CardDeck.Add(new Card(type, "Three", 3));
-                CardDeck.Add(new Card(type, "Four", 4));
-                CardDeck.Add(new Card(type, "Five", 5));
-                CardDeck.Add(new Card(type, "Six", 6));
-                CardDeck.Add(new Card(type, "Seven", 7));
-                CardDeck.Add(new Card(type, "Eight", 8));
-                CardDeck.Add(new Card(type, "Nine", 9));
-                CardDeck.Add(new Card(type, "Ten", 10));
-                CardDeck.Add(new Card(type, "Jack", 10));
-                CardDeck.Add(new Card(type, "Queen", 10));
-                CardDeck.Add(new Card(type, "Ace", 10));
+                List<String> types = new List<String> { "Hearts", "Diamonds", "Clubs", "Spades" };
+                foreach (String type in types)
+                {
+                    CardDeck.Add(new Card(type, "Ace", 11));
+                    CardDeck.Add(new Card(type, "Two", 2));
+                    CardDeck.Add(new Card(type, "Three", 3));
+                    CardDeck.Add(new Card(type, "Four", 4));
+                    CardDeck.Add(new Card(type, "Five", 5));
+                    CardDeck.Add(new Card(type, "Six", 6));
+                    CardDeck.Add(new Card(type, "Seven", 7));
+                    CardDeck.Add(new Card(type, "Eight", 8));
+                    CardDeck.Add(new Card(type, "Nine", 9));
+                    CardDeck.Add(new Card(type, "Ten", 10));
+                    CardDeck.Add(new Card(type, "Jack", 10));
+                    CardDeck.Add(new Card(type, "Queen", 10));
+                    CardDeck.Add(new Card(type, "Ace", 10));
+                }
             }
+            ShuffleDeck();
         }
-        ShuffleDeck();
-    }
 
-    public void ShuffleDeck()
-    {
-        Random rand = new Random();
-        CardDeck = CardDeck.OrderBy(card => rand.Next()).Select(card => card).ToList();
-    }
+        public void ShuffleDeck()
+        {
+            Random rand = new Random();
+            CardDeck = CardDeck.OrderBy(card => rand.Next()).Select(card => card).ToList();
+        }
 
-    public Card DrawCard()
-    {
-        Card currentCard = CardDeck[0];
-        CardDeck.Remove(currentCard);
-        return currentCard;
+        public Card DrawCard()
+        {
+            Card currentCard = CardDeck[0];
+            CardDeck.Remove(currentCard);
+            return currentCard;
+        }
     }
 }

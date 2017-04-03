@@ -1,13 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace BlackJack
+namespace BlackJackLibrary
 {
     public class Dealer
     {
 
         public Card DealerFacedownCard { get; set; }
         public List<Card> DealerOpenCards { get; set; }
+        public Decimal CasinoEarnings { get; set; }
+        public List<Decimal> PayoutMoney { get; set; }
         public Int32 FaceDownCardValue { get; set; } 
         public Int32 TotalCardValue { get; set; }
         public Int32 OpenCardValue { get; set; }
@@ -15,7 +17,6 @@ namespace BlackJack
         public Int32 LossCounter { get; set; }
         public Int32 DrawCounter { get; set; }
         public Int32 BlackJackCounter { get; set; }
-        public Decimal CasinoEarnings { get; set; }
 
         public Dealer()
         {
@@ -26,10 +27,15 @@ namespace BlackJack
             this.OpenCardValue = 0;
             this.WinCounter = 0;
             this.BlackJackCounter = 0;
+            this.PayoutMoney = new List<Decimal>();
         }
 
         public void ResetHand()
         {
+            this.PayoutMoney = new List<Decimal>();
+            this.DealerOpenCards = new List<Card>();
+            this.DealerFacedownCard = new Card("Empty", "", 0);
+            this.FaceDownCardValue = 0;
             this.OpenCardValue = 0;
             this.TotalCardValue = 0;
         }
@@ -54,7 +60,6 @@ namespace BlackJack
                 this.DealerFacedownCard = drawnCard;
                 this.FaceDownCardValue = DealerFacedownCard.CardValue;
                 this.CalculateTotalCardValue();
-                Console.WriteLine(this.DealerOpenCards.ToString() + "    " + this.DealerFacedownCard.CardValue);
                 Console.WriteLine("The Dealers has drawn a card and has put it face down.");
             }
             else if (DealerOpenCards.Count >= 1)
@@ -64,14 +69,12 @@ namespace BlackJack
                 this.FaceDownCardValue = DealerFacedownCard.CardValue;
                 this.DealerOpenCards.Add(newOpenCard);
                 this.CalculateTotalCardValue();
-                Console.WriteLine(this.DealerOpenCards + "    " + this.DealerFacedownCard);
                 Console.WriteLine("The Dealers Open card is a {0} with a value of {1} with a total Open card value of {2}!", newOpenCard.CardName, newOpenCard.CardValue, this.OpenCardValue);
             }
             else
             {
                 DealerOpenCards.Add(drawnCard);
                 this.CalculateTotalCardValue();
-                Console.WriteLine(this.DealerOpenCards + "    " + this.DealerFacedownCard);
                 Console.WriteLine("The Dealers first Open card is a {0} with a value of {1}!", drawnCard.CardName, drawnCard.CardValue);
             }
             Console.ResetColor();
@@ -96,7 +99,6 @@ namespace BlackJack
             {
                 this.DealerFacedownCard = drawnCard;
                 this.FaceDownCardValue = DealerFacedownCard.CardValue;
-                Console.WriteLine(this.DealerOpenCards + "    " + this.DealerFacedownCard);
             }
             else if (DealerOpenCards.Count >= 1)
             {
@@ -104,12 +106,10 @@ namespace BlackJack
                 this.DealerFacedownCard = drawnCard;
                 this.FaceDownCardValue = DealerFacedownCard.CardValue;
                 this.DealerOpenCards.Add(newOpenCard);
-                Console.WriteLine(this.DealerOpenCards + "    " + this.DealerFacedownCard);
             }
             else
             {
                 DealerOpenCards.Add(drawnCard);
-                Console.WriteLine(this.DealerOpenCards + "    " + this.DealerFacedownCard);
             }
             this.CalculateTotalCardValue();
             Console.ResetColor();
@@ -136,20 +136,24 @@ namespace BlackJack
 
         public void RevealAllCards()
         {
+            Console.ForegroundColor = ConsoleColor.Red;
             foreach (Card openCard in this.DealerOpenCards)
             {
                 Console.WriteLine("The the Open card is a {0} with a value of {1}.", openCard.CardName, openCard.CardValue);
             }
             Console.WriteLine("The Face down card is a {0} with a value of {1}.", this.DealerFacedownCard.CardName, this.FaceDownCardValue);
             Console.WriteLine("The Dealer has a total card value of {0}!", this.TotalCardValue);
+            Console.ResetColor();
         }
 
-        internal void NaturalBlackJackPayout(Player player)
+        public virtual void CollectMoney(Decimal payout)
         {
-            Decimal payout = player.CurrentBet * 1.50m;
-            Console.WriteLine("Currentbet {0} gives payout of {1}", player.CurrentBet, payout);
-            this.CasinoEarnings -= payout;
-            player.CurrentMoney += payout;
+            this.CasinoEarnings = (this.CasinoEarnings + payout);
+        }
+
+        public virtual void LoseMoney(Decimal currentBet)
+        {
+            this.CasinoEarnings = (this.CasinoEarnings - currentBet);
         }
     }
 }

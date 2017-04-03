@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BlackJack
+namespace BlackJackLibrary
 {
     public class SimulatedPlayer : Player
     {
@@ -22,7 +22,6 @@ namespace BlackJack
             this.StopScore = stopScore;
             this.HandValue = 0;
             this.CurrentMoney = 500.00m;
-            this.CurrentBet = 0.00m;
             this.EndOfRound = false;
             this.WinCounter = 0;
             this.LossCounter = 0;
@@ -78,10 +77,9 @@ namespace BlackJack
             this.EndOfRound = true;
         }
 
-        public override void DoubleDown(Deck blackJackDeck, Decimal currentBlackJackPayout)
+        public override void DoubleDown(Deck blackJackDeck)
         {
             this.CurrentMoney -= this.CurrentBet;
-            currentBlackJackPayout += this.CurrentBet;
             this.Hit(blackJackDeck);
             this.EndOfRound = true;
         }

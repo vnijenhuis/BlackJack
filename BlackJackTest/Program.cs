@@ -126,7 +126,9 @@ namespace BlackJack
 
             #region Game
             Game game = new Game();
-            game.RunBlackJackGame();
+            //Int32 amountOfTables = 1;
+            //Int32 amountOfPlayers = 8;
+            game.StartBlackJack();
             #endregion
 
             #region Simulator

@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using BlackJackLibrary;
 
 namespace BlackJack
 {
@@ -126,14 +127,6 @@ namespace BlackJack
                     }
                 }
                 this.BlackJackDealer.SimulateOpenCard(this.BlackJackDeck);
-                //if (BlackJackDealer.OpenCardValue == 0)
-                //{
-                //    this.BlackJackDealer.SimulateOpenCard(this.BlackJackDeck);
-                //}
-                //else if (BlackJackDealer.DealerCards.Count == 1)
-                //{
-                //    this.BlackJackDealer.Hit(this.BlackJackDeck);
-                //}
             }
         }
 
@@ -156,7 +149,7 @@ namespace BlackJack
                             {
                                 if (player.StopScore >= 16 && player.HandValue >= 9 && player.HandValue <= 11 && BlackJackDealer.OpenCardValue < 10 && BlackJackDealer.OpenCardValue > 17)
                                 {
-                                    player.DoubleDown(this.BlackJackDeck, this.CurrentBlackJackPayout);
+                                    player.DoubleDown(this.BlackJackDeck);
                                     doTurn = false;
                                 }
                                 else if (player.HandValue >= player.StopScore)
@@ -207,10 +200,15 @@ namespace BlackJack
 
         private void CheckWinConditions()
         {
+            List<Player> playerStopList = new List<Player>();
             PlayersWithBlackJack = new PlayerCollection();
             PlayersWithoutBlackJack = new PlayerCollection();
             PlayerCollectionCurrentGame.LinqSort();
-            foreach (SimulatedPlayer currentPlayer in PlayerCollectionCurrentGame.List)
+            this.BlackJackDealer.RevealAllCards();
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.ResetColor();
+            Decimal currentBlackJackPayout = 0.00m;
+            foreach (Player currentPlayer in PlayerCollectionCurrentGame.List)
             {
                 if (currentPlayer.HandValue == 21)
                 {
@@ -220,120 +218,62 @@ namespace BlackJack
                 {
                     PlayersWithoutBlackJack.AddPlayer(currentPlayer);
                 }
+                currentBlackJackPayout += currentPlayer.CurrentBet;
+                currentPlayer.CurrentBet = 0.00m;
             }
             //Check blackjack options.
             if (PlayersWithBlackJack.List.Count > 1 && BlackJackDealer.TotalCardValue != 21)
             {
-                Decimal moneyPerPlayer = (CurrentBlackJackPayout / PlayersWithBlackJack.List.Count);
-                foreach (SimulatedPlayer currentPlayer in PlayersWithBlackJack.List)
+                Decimal moneyPerPlayer = (currentBlackJackPayout / PlayersWithBlackJack.List.Count);
+                foreach (Player currentPlayer in PlayersWithBlackJack.List)
                 {
-                    currentPlayer.BlackJackCounter += 1;
-                    currentPlayer.DrawCounter += 1;
-                    //Deze
-                    //currentPlayer.CurrentMoney += moneyPerPlayer + currentPlayer.CurrentBet;
-                    this.BlackJackDealer.LossCounter += 1;
-                    //Deze
-                    this.BlackJackDealer.CasinoEarnings -= currentPlayer.CurrentBet * 2;
-                }
-                foreach (SimulatedPlayer currentPlayer in PlayersWithoutBlackJack.List)
-                {
-                    currentPlayer.LossCounter += 1;
-                    BlackJackDealer.LossCounter += 1;
+                    currentPlayer.CurrentMoney += moneyPerPlayer;
+                    currentPlayer.CurrentBet = 0.00m;
                 }
             }
             else if (PlayersWithBlackJack.List.Count > 1 && BlackJackDealer.TotalCardValue == 21)
             {
-                foreach (SimulatedPlayer currentPlayer in PlayersWithBlackJack.List)
+                foreach (Player currentPlayer in PlayersWithBlackJack.List)
                 {
-                    currentPlayer.BlackJackCounter += 1;
-                    //Deze
-                    //currentPlayer.CurrentMoney += currentPlayer.CurrentBet;
-                    this.BlackJackDealer.DrawCounter += 1;
-                    currentPlayer.DrawCounter += 1;
+                    currentPlayer.CurrentMoney += currentPlayer.CurrentBet;
+                    currentBlackJackPayout -= currentPlayer.CurrentBet;
+                    currentPlayer.CurrentBet = 0.00m;
                 }
-                foreach (SimulatedPlayer currentPlayer in PlayersWithoutBlackJack.List)
-                {
-                    //Deze
-                    //this.BlackJackDealer.CasinoEarnings += currentPlayer.CurrentBet;
-                    //this.BlackJackDealer.WinCounter += 1;
-                    currentPlayer.LossCounter += 1;
-                }
-                this.BlackJackDealer.BlackJackCounter += 1;
+                BlackJackDealer.CasinoEarnings += currentBlackJackPayout;
             }
             else if (PlayersWithBlackJack.List.Count == 1)
             {
-                SimulatedPlayer player = (SimulatedPlayer) PlayersWithBlackJack.List[0];
-                player.BlackJackCounter += 1;
-                //Deze
-                //player.CurrentMoney += CurrentBlackJackPayout + player.CurrentBet;
-                player.WinCounter += 1;
-                BlackJackDealer.LossCounter += 1;
-                //Deze
-                this.BlackJackDealer.CasinoEarnings -= player.CurrentBet * 2;
-                foreach (SimulatedPlayer currentPlayer in this.PlayersWithoutBlackJack.List)
-                {
-                    currentPlayer.LossCounter += 1;
-                    BlackJackDealer.LossCounter += 1;
-                }
-            } else if (PlayersWithBlackJack.List.Count == 0 && this.BlackJackDealer.TotalCardValue == 21)
-            {
-                foreach (SimulatedPlayer currentPlayer in this.PlayersWithoutBlackJack.List)
-                {
-                    currentPlayer.LossCounter += 1;
-                    BlackJackDealer.WinCounter += 1;
-                    //Deze
-                    //CurrentBlackJackPayout += currentPlayer.CurrentBet;
-                    //currentPlayer.CurrentMoney -= currentPlayer.CurrentBet;
-                }
-                this.BlackJackDealer.BlackJackCounter += 1;
-                //Deze
-                //this.BlackJackDealer.CasinoEarnings += CurrentBlackJackPayout;
+                Player player = PlayersWithBlackJack.List[0];
+                player.CurrentMoney += currentBlackJackPayout;
+                player.CurrentBet = 0.00m;
             }
             else
             {
                 //Execute non-blackjack options in Else
-                foreach (SimulatedPlayer currentPlayer in PlayersWithoutBlackJack.List)
+                foreach (Player currentPlayer in PlayersWithoutBlackJack.List)
                 {
                     //Check win conditions
                     if (BlackJackDealer.TotalCardValue == currentPlayer.HandValue)
                     {
-                        //Deze
-                        //currentPlayer.CurrentMoney += currentPlayer.CurrentBet;
-                        this.BlackJackDealer.DrawCounter += 1;
-                        currentPlayer.DrawCounter += 1;
+                        currentPlayer.CurrentMoney += currentPlayer.CurrentBet;
                     }
                     else if (BlackJackDealer.TotalCardValue < 21 && BlackJackDealer.TotalCardValue < currentPlayer.HandValue && currentPlayer.HandValue < 21)
                     {
-                        //Deze
-                        //currentPlayer.CurrentMoney += (currentPlayer.CurrentBet * 2);
-                        //this.BlackJackDealer.CasinoEarnings -= currentPlayer.CurrentBet;
-                        this.BlackJackDealer.LossCounter += 1;
-                        currentPlayer.WinCounter += 1;
+                        currentPlayer.CurrentMoney += (currentPlayer.CurrentBet * 2);
                     }
                     else if (BlackJackDealer.TotalCardValue > 21 && currentPlayer.HandValue < 21)
                     {
-                        //Deze
-                        //currentPlayer.CurrentMoney += (currentPlayer.CurrentBet * 2);
-                        //this.BlackJackDealer.CasinoEarnings -= currentPlayer.CurrentBet;
-                        this.BlackJackDealer.LossCounter += 1;
-                        currentPlayer.WinCounter += 1;
+                        currentPlayer.CurrentMoney += (currentPlayer.CurrentBet * 2);
                     }
                     else if (BlackJackDealer.TotalCardValue > 21 && currentPlayer.HandValue > 21)
                     {
-                        //Deze
-                        //currentPlayer.CurrentMoney += currentPlayer.CurrentBet;
-                        //this.BlackJackDealer.CasinoEarnings -= currentPlayer.CurrentBet;
-                        this.BlackJackDealer.LossCounter += 1;
-                        currentPlayer.WinCounter += 1;
+                        currentPlayer.CurrentMoney += currentPlayer.CurrentBet;
                     }
                     else
                     {
-                        //Deze
-                        //currentPlayer.CurrentMoney -= currentPlayer.CurrentBet;
-                        //this.BlackJackDealer.CasinoEarnings += currentPlayer.CurrentBet;
-                        this.BlackJackDealer.WinCounter += 1;
-                        currentPlayer.LossCounter += 1;
+                        BlackJackDealer.CasinoEarnings += currentPlayer.CurrentBet;
                     }
+                    currentPlayer.CurrentBet = 0.00m;
                 }
             }
         }

@@ -28,6 +28,7 @@ namespace BlackJack
             this.BlackJackDealer = new Dealer();
         }
 
+        #region Start
         public void StartBlackJack()
         {
             AssignPlayersToTable(1, 4);
@@ -41,7 +42,8 @@ namespace BlackJack
                     {
                         Decimal bet = player.BetMoney();
                         PlayerBets.Add(bet);
-                    } else
+                    }
+                    else
                     {
                         playerStoppedList.Add(player);
                     }
@@ -56,7 +58,9 @@ namespace BlackJack
                 this.StartBlackJackRound();
             }
         }
+        #endregion
 
+        #region AssignPlayers
         private Int32 AssignPlayersToTable(Int32 tableNumber, Int32 amountOfPlayers)
         {
             Console.WriteLine("There are currently {0} players. How many players will play blackJack at table {1}?", amountOfPlayers, tableNumber);
@@ -80,7 +84,9 @@ namespace BlackJack
             Int32 remainingAmountOfPlayers = amountOfPlayers - players;
             return remainingAmountOfPlayers;
         }
+        #endregion
 
+        #region DeckSize
         private void DefineDeckSize()
         {
             this.AmountOfDecks = 0;
@@ -95,12 +101,15 @@ namespace BlackJack
             else if (TotalPlayerCollection.List.Count <= 6)
             {
                 AmountOfDecks = 3;
-            } else
+            }
+            else
             {
                 AmountOfDecks = 4;
             }
         }
+        #endregion
 
+        #region StartingHand
         private void StartingHandRound()
         {
             this.BlackJackDealer.ResetHand();
@@ -112,15 +121,18 @@ namespace BlackJack
                     {
                         currentPlayer.ResetHand();
                         currentPlayer.Hit(this.BlackJackDeck);
-                    } else
+                    }
+                    else
                     {
                         currentPlayer.Hit(this.BlackJackDeck);
                     }
                 }
                 this.BlackJackDealer.OpenCard(this.BlackJackDeck);
             }
-        }
+        } 
+        #endregion
 
+        #region BlackJackRound
         private void StartBlackJackRound()
         {
             String hitPattern = "(hit|hi|ht|h)";
@@ -133,70 +145,57 @@ namespace BlackJack
             List<Player> playerStoppedWithRound = new List<Player>();
             while (continueRound)
             {
-                for (int pIndex = 0; pIndex < PlayerCollectionCurrentGame.List.Count; pIndex++)
+            for (int pIndex = 0; pIndex < PlayerCollectionCurrentGame.List.Count; pIndex++)
                 foreach (Player player in PlayerCollectionCurrentGame.List)
                 {
-                    if (!player.EndOfRound)
+                    if (player.HandValue < 21 && BlackJackDealer.TotalCardValue < 21)
                     {
-                        if (player.HandValue < 21 && BlackJackDealer.TotalCardValue < 21)
+                        Boolean doTurn = true;
+                        while (doTurn)
                         {
-                            Boolean doTurn = true;
-                            while (doTurn)
+                            if (player.HandValue > 21)
                             {
+                                player.TryChangeAceScore();
                                 if (player.HandValue > 21)
                                 {
-                                    player.TryChangeAceScore();
-                                    if (player.HandValue > 21)
-                                    {
-                                        doTurn = false;
-                                    }
-                                }
-                                if (player.HandValue < 21)
-                                {
-                                    Console.WriteLine("{0}, your current hand has a total score of {1}. Hit, Stand, Double-Down or Surrender?", player.Name, player.HandValue);
-                                    String playerMove = Console.ReadLine().ToLower();
-                                    if (Regex.IsMatch(playerMove, hitPattern))
-                                    {
-                                        player.Hit(this.BlackJackDeck);
-                                    }
-                                    else if (Regex.IsMatch(playerMove, standPattern))
-                                    {
-                                        player.Stand();
-                                        doTurn = false;
-                                    }
-                                    else if (Regex.IsMatch(playerMove, doubleDownPattern) && player.CurrentMoney >= PlayerBets[pIndex] && player.HandValue >= 9 && player.HandValue <= 11)
-                                    {
-                                        Decimal newBet = player.DoubleDown(this.BlackJackDeck, PlayerBets[pIndex]);
-                                        PlayerBets[pIndex] = newBet;
-                                        doTurn = false;
-                                    }
-                                    else if (Regex.IsMatch(playerMove, surrenderPattern))
-                                    {
-                                        player.Surrender();
-                                        doTurn = false;
-                                    }
-                                    else
-                                    {
-                                        Console.WriteLine("Please use hit, stand, doubledown or surrender as input.");
-                                    }
-                                } else
-                                {
                                     doTurn = false;
-                                    Console.WriteLine("Your score exceeded the BlackJack limit!");
                                 }
                             }
+                            if (player.HandValue < 21)
+                            {
+                                Console.WriteLine("{0}, your current hand has a total score of {1}. Hit, Stand, Double-Down or Surrender?", player.Name, player.HandValue);
+                                String playerMove = Console.ReadLine().ToLower();
+                                if (Regex.IsMatch(playerMove, hitPattern))
+                                {
+                                    player.Hit(this.BlackJackDeck);
+                                }
+                                else if (Regex.IsMatch(playerMove, standPattern))
+                                {
+                                    player.Stand();
+                                    doTurn = false;
+                                }
+                                else if (Regex.IsMatch(playerMove, doubleDownPattern) && player.CurrentMoney >= PlayerBets[pIndex] && player.HandValue >= 9 && player.HandValue <= 11)
+                                {
+                                    Decimal newBet = player.DoubleDown(this.BlackJackDeck, PlayerBets[pIndex]);
+                                    PlayerBets[pIndex] = newBet;
+                                    doTurn = false;
+                                }
+                                else if (Regex.IsMatch(playerMove, surrenderPattern))
+                                {
+                                    player.Surrender();
+                                    doTurn = false;
+                                }
+                                else
+                                {
+                                    Console.WriteLine("Please use hit, stand, doubledown or surrender as input.");
+                                }
+                            }
+                            else
+                            {
+                                doTurn = false;
+                                Console.WriteLine("Your score exceeded the BlackJack limit!");
+                            }
                         }
-                        else
-                        {
-                            continueRound = false;
-                        }
-                    } else
-                    {
-                        playerStoppedWithRound.Add(player);
-                    }
-                    if (playerStoppedWithRound.Count == PlayerCollectionCurrentGame.List.Count)
-                    {
-                        break;
                     }
                 }
                 while (BlackJackDealer.TotalCardValue < 17)
@@ -219,142 +218,154 @@ namespace BlackJack
 
         private void CheckWinConditions()
         {
-            Decimal currentBlackJackPayout = 0.00m;
-            foreach (Decimal bet in PlayerBets)
-            {
-                currentBlackJackPayout += bet;
-            }
-            List<Player> playerStopList = new List<Player>();
-            PlayersWithBlackJack = new PlayerCollection();
-            PlayersWithoutBlackJack = new PlayerCollection();
-            PlayerCollectionCurrentGame.LinqSort();
-            this.BlackJackDealer.RevealAllCards();
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.ResetColor();
-            foreach (Player currentPlayer in PlayerCollectionCurrentGame.List)
-            {
-                Console.WriteLine("{0} has a Hand value of {1}", currentPlayer.Name, currentPlayer.HandValue);
-                if (currentPlayer.HandValue == 21)
-                {
-                    PlayersWithBlackJack.AddPlayer(currentPlayer);
-                } else
-                {
-                    PlayersWithoutBlackJack.AddPlayer(currentPlayer);
-                }
-            }
-            //Check blackjack options.
-             if (PlayersWithBlackJack.List.Count == 0 && BlackJackDealer.TotalCardValue == 21)
-            {
-                BlackJackDealer.CollectMoney(currentBlackJackPayout);
-            } else if (PlayersWithBlackJack.List.Count >= 1 && BlackJackDealer.TotalCardValue == 21 && BlackJackDealer.DealerOpenCards.Count == 2)
-            {
-                Boolean playerWithNatural = false;
-                foreach (Player player in PlayersWithBlackJack.List)
-                {
-                    if (player.PlayerCards.Count == 2)
-                    {
-                    }
-                }
-                if (!playerWithNatural)
-                {
-                    BlackJackDealer.CollectMoney(currentBlackJackPayout);
-                }
-            }
-            else if (PlayersWithBlackJack.List.Count == 1)
-            {
-                Player player = PlayersWithBlackJack.List[0];
-                String blackJackPayout = currentBlackJackPayout.ToString("C", new CultureInfo("en-US"));
-                Console.WriteLine("{0}, you have blackjack! You win {1}!", player.Name, blackJackPayout);
-                player.CurrentMoney += currentBlackJackPayout;
-                player.CurrentBet = 0.00m;
-            }
-            else if(PlayersWithBlackJack.List.Count > 1 && BlackJackDealer.TotalCardValue != 21)
-            {
-                Decimal moneyPerPlayer = (currentBlackJackPayout / PlayersWithBlackJack.List.Count);
-                String moneyPerPlayerInDollars = moneyPerPlayer.ToString("C", new CultureInfo("en-US"));
-                foreach (Player currentPlayer in PlayersWithBlackJack.List)
-                {
-                    Console.WriteLine("{0}, you have blackjack! You share {1}!", currentPlayer.Name, moneyPerPlayerInDollars);
-                    currentPlayer.CurrentMoney += moneyPerPlayer;
-                    currentPlayer.CurrentBet = 0.00m;
-                }
-            } else if (PlayersWithBlackJack.List.Count > 1 && BlackJackDealer.TotalCardValue == 21)
-            {
-                foreach (Player currentPlayer in PlayersWithBlackJack.List)
-                {
-                    String currentBetInDollars = currentPlayer.CurrentBet.ToString("C", new CultureInfo("en-US"));
-                    Console.WriteLine("{0}, you and the dealer have blackjack! You get your bet of {1} back.", currentPlayer.Name, currentBetInDollars);
-                    currentPlayer.CurrentMoney += currentPlayer.CurrentBet;
-                    currentBlackJackPayout -= currentPlayer.CurrentBet;
-                    currentPlayer.CurrentBet = 0.00m;
-                }
-                BlackJackDealer.CollectMoney(currentBlackJackPayout);
-            } else
-            {
-                //Execute non-blackjack options in Else
-                foreach (Player currentPlayer in PlayersWithoutBlackJack.List)
-                {
-                    String currentBetInDollars = currentPlayer.CurrentBet.ToString("C", new CultureInfo("en-US"));
-                    //Check win conditions
-                    Console.WriteLine("{0}, you have {1} and the Dealer has {2}", currentPlayer.Name, currentPlayer.HandValue, BlackJackDealer.TotalCardValue);
-                    if (BlackJackDealer.TotalCardValue > 21 && currentPlayer.HandValue < 21)
-                    {
-                        currentBetInDollars = (currentPlayer.CurrentBet * 2).ToString("C", new CultureInfo("en-US"));
-                        Console.WriteLine("The dealer has score that exceeds the blackjack limit! You win {0}", currentBetInDollars);
-                        currentPlayer.CurrentMoney += (currentPlayer.CurrentBet * 2);
-                        BlackJackDealer.CasinoEarnings -= currentPlayer.CurrentBet;
-                    }
-                    else if (BlackJackDealer.TotalCardValue < 21 && BlackJackDealer.TotalCardValue < currentPlayer.HandValue && currentPlayer.HandValue < 21)
-                    {
-                        currentBetInDollars = (currentPlayer.CurrentBet * 2).ToString("C", new CultureInfo("en-US"));
-                        Console.WriteLine("You have a higher score then the dealer! You win {0}", currentBetInDollars);
-                        currentPlayer.CurrentMoney += (currentPlayer.CurrentBet * 2);
-                        BlackJackDealer.CasinoEarnings -= currentPlayer.CurrentBet;
-                    }
-                    else if (BlackJackDealer.TotalCardValue > 21 && currentPlayer.HandValue > 21)
-                    {
-                        currentBetInDollars = currentPlayer.CurrentBet.ToString("C", new CultureInfo("en-US"));
-                        Console.WriteLine("Both you and the dealer have a higher score then 21. You get your bet of {0} back.", currentBetInDollars);
-                        currentPlayer.CurrentMoney += currentPlayer.CurrentBet;
-                        BlackJackDealer.CasinoEarnings -= currentPlayer.CurrentBet;
-                    }
-                    else if (BlackJackDealer.TotalCardValue == currentPlayer.HandValue)
-                    {
-                        currentBetInDollars = currentPlayer.CurrentBet.ToString("C", new CultureInfo("en-US"));
-                        Console.WriteLine("You and the Dealer have similar scores! You get your bet of {0} back.", currentBetInDollars);
-                        currentPlayer.CurrentMoney += currentPlayer.CurrentBet;
-                        currentPlayer.CurrentMoney += currentPlayer.CurrentBet;
-                        BlackJackDealer.CasinoEarnings -= currentPlayer.CurrentBet;
-                    }
-                    else
-                    {
-                        currentBetInDollars = currentPlayer.CurrentBet.ToString("C", new CultureInfo("en-US"));
-                        Console.WriteLine("The Dealer has a higher score then you! You lose {0}", currentBetInDollars);
-                        BlackJackDealer.CollectMoney(currentPlayer.CurrentBet);
-                    }
-                    currentPlayer.CurrentBet = 0.00m;
-                }
-            }
-            String casinoEarningsInDollars = BlackJackDealer.CasinoEarnings.ToString("C", new CultureInfo("en-US"));
-            Console.WriteLine("The casino currently has {0}", casinoEarningsInDollars);
-            foreach (Player currentPlayer in PlayerCollectionCurrentGame.List)
-            {
-                Console.WriteLine("Wanna play again? (y/n)");
-                if (!Regex.IsMatch(Console.ReadLine().ToLower(), yesPattern))
-                {
-                    playerStopList.Add(currentPlayer);
-                }
-                else
-                {
-                    currentPlayer.EndOfRound = false;
-                }
-            }
-            foreach (Player currentPlayer in playerStopList)
-            {
-                Console.WriteLine("{0} has left the game with {1}", currentPlayer.Name, currentPlayer.CurrentMoney);
-                TotalPlayerCollection.List.Remove(currentPlayer);
-            }
+            Console.WriteLine("Finsihed round");
         }
+        #endregion
+
+        //#region WinConditions
+        //private void CheckWinConditions()
+        //{
+        //    Decimal currentBlackJackPayout = 0.00m;
+        //    foreach (Decimal bet in PlayerBets)
+        //    {
+        //        currentBlackJackPayout += bet;
+        //    }
+        //    List<Player> playerStopList = new List<Player>();
+        //    PlayersWithBlackJack = new PlayerCollection();
+        //    PlayersWithoutBlackJack = new PlayerCollection();
+        //    PlayerCollectionCurrentGame.LinqSort();
+        //    this.BlackJackDealer.RevealAllCards();
+        //    Console.ForegroundColor = ConsoleColor.Red;
+        //    Console.ResetColor();
+        //    foreach (Player currentPlayer in PlayerCollectionCurrentGame.List)
+        //    {
+        //        Console.WriteLine("{0} has a Hand value of {1}", currentPlayer.Name, currentPlayer.HandValue);
+        //        if (currentPlayer.HandValue == 21)
+        //        {
+        //            PlayersWithBlackJack.AddPlayer(currentPlayer);
+        //        }
+        //        else
+        //        {
+        //            PlayersWithoutBlackJack.AddPlayer(currentPlayer);
+        //        }
+        //    }
+        //    //Check blackjack options.
+        //    if (PlayersWithBlackJack.List.Count == 0 && BlackJackDealer.TotalCardValue == 21)
+        //    {
+        //        BlackJackDealer.CollectMoney(currentBlackJackPayout);
+        //    }
+        //    else if (PlayersWithBlackJack.List.Count >= 1 && BlackJackDealer.TotalCardValue == 21 && BlackJackDealer.DealerOpenCards.Count == 2)
+        //    {
+        //        Boolean playerWithNatural = false;
+        //        foreach (Player player in PlayersWithBlackJack.List)
+        //        {
+        //            if (player.PlayerCards.Count == 2)
+        //            {
+        //            }
+        //        }
+        //        if (!playerWithNatural)
+        //        {
+        //            BlackJackDealer.CollectMoney(currentBlackJackPayout);
+        //        }
+        //    }
+        //    else if (PlayersWithBlackJack.List.Count == 1)
+        //    {
+        //        Player player = PlayersWithBlackJack.List[0];
+        //        String blackJackPayout = currentBlackJackPayout.ToString("C", new CultureInfo("en-US"));
+        //        Console.WriteLine("{0}, you have blackjack! You win {1}!", player.Name, blackJackPayout);
+        //        player.CurrentMoney += currentBlackJackPayout;
+        //        player.CurrentBet = 0.00m;
+        //    }
+        //    else if (PlayersWithBlackJack.List.Count > 1 && BlackJackDealer.TotalCardValue != 21)
+        //    {
+        //        Decimal moneyPerPlayer = (currentBlackJackPayout / PlayersWithBlackJack.List.Count);
+        //        String moneyPerPlayerInDollars = moneyPerPlayer.ToString("C", new CultureInfo("en-US"));
+        //        foreach (Player currentPlayer in PlayersWithBlackJack.List)
+        //        {
+        //            Console.WriteLine("{0}, you have blackjack! You share {1}!", currentPlayer.Name, moneyPerPlayerInDollars);
+        //            currentPlayer.CurrentMoney += moneyPerPlayer;
+        //            currentPlayer.CurrentBet = 0.00m;
+        //        }
+        //    }
+        //    else if (PlayersWithBlackJack.List.Count > 1 && BlackJackDealer.TotalCardValue == 21)
+        //    {
+        //        foreach (Player currentPlayer in PlayersWithBlackJack.List)
+        //        {
+        //            String currentBetInDollars = currentPlayer.CurrentBet.ToString("C", new CultureInfo("en-US"));
+        //            Console.WriteLine("{0}, you and the dealer have blackjack! You get your bet of {1} back.", currentPlayer.Name, currentBetInDollars);
+        //            currentPlayer.CurrentMoney += currentPlayer.CurrentBet;
+        //            currentBlackJackPayout -= currentPlayer.CurrentBet;
+        //            currentPlayer.CurrentBet = 0.00m;
+        //        }
+        //        BlackJackDealer.CollectMoney(currentBlackJackPayout);
+        //    }
+        //    else
+        //    {
+        //        //Execute non-blackjack options in Else
+        //        foreach (Player currentPlayer in PlayersWithoutBlackJack.List)
+        //        {
+        //            String currentBetInDollars = currentPlayer.CurrentBet.ToString("C", new CultureInfo("en-US"));
+        //            //Check win conditions
+        //            Console.WriteLine("{0}, you have {1} and the Dealer has {2}", currentPlayer.Name, currentPlayer.HandValue, BlackJackDealer.TotalCardValue);
+        //            if (BlackJackDealer.TotalCardValue > 21 && currentPlayer.HandValue < 21)
+        //            {
+        //                currentBetInDollars = (currentPlayer.CurrentBet * 2).ToString("C", new CultureInfo("en-US"));
+        //                Console.WriteLine("The dealer has score that exceeds the blackjack limit! You win {0}", currentBetInDollars);
+        //                currentPlayer.CurrentMoney += (currentPlayer.CurrentBet * 2);
+        //                BlackJackDealer.CasinoEarnings -= currentPlayer.CurrentBet;
+        //            }
+        //            else if (BlackJackDealer.TotalCardValue < 21 && BlackJackDealer.TotalCardValue < currentPlayer.HandValue && currentPlayer.HandValue < 21)
+        //            {
+        //                currentBetInDollars = (currentPlayer.CurrentBet * 2).ToString("C", new CultureInfo("en-US"));
+        //                Console.WriteLine("You have a higher score then the dealer! You win {0}", currentBetInDollars);
+        //                currentPlayer.CurrentMoney += (currentPlayer.CurrentBet * 2);
+        //                BlackJackDealer.CasinoEarnings -= currentPlayer.CurrentBet;
+        //            }
+        //            else if (BlackJackDealer.TotalCardValue > 21 && currentPlayer.HandValue > 21)
+        //            {
+        //                currentBetInDollars = currentPlayer.CurrentBet.ToString("C", new CultureInfo("en-US"));
+        //                Console.WriteLine("Both you and the dealer have a higher score then 21. You get your bet of {0} back.", currentBetInDollars);
+        //                currentPlayer.CurrentMoney += currentPlayer.CurrentBet;
+        //                BlackJackDealer.CasinoEarnings -= currentPlayer.CurrentBet;
+        //            }
+        //            else if (BlackJackDealer.TotalCardValue == currentPlayer.HandValue)
+        //            {
+        //                currentBetInDollars = currentPlayer.CurrentBet.ToString("C", new CultureInfo("en-US"));
+        //                Console.WriteLine("You and the Dealer have similar scores! You get your bet of {0} back.", currentBetInDollars);
+        //                currentPlayer.CurrentMoney += currentPlayer.CurrentBet;
+        //                currentPlayer.CurrentMoney += currentPlayer.CurrentBet;
+        //                BlackJackDealer.CasinoEarnings -= currentPlayer.CurrentBet;
+        //            }
+        //            else
+        //            {
+        //                currentBetInDollars = currentPlayer.CurrentBet.ToString("C", new CultureInfo("en-US"));
+        //                Console.WriteLine("The Dealer has a higher score then you! You lose {0}", currentBetInDollars);
+        //                BlackJackDealer.CollectMoney(currentPlayer.CurrentBet);
+        //            }
+        //            currentPlayer.CurrentBet = 0.00m;
+        //        }
+        //    }
+        //    String casinoEarningsInDollars = BlackJackDealer.CasinoEarnings.ToString("C", new CultureInfo("en-US"));
+        //    Console.WriteLine("The casino currently has {0}", casinoEarningsInDollars);
+        //    foreach (Player currentPlayer in PlayerCollectionCurrentGame.List)
+        //    {
+        //        Console.WriteLine("Wanna play again? (y/n)");
+        //        if (!Regex.IsMatch(Console.ReadLine().ToLower(), yesPattern))
+        //        {
+        //            playerStopList.Add(currentPlayer);
+        //        }
+        //        else
+        //        {
+        //            currentPlayer.EndOfRound = false;
+        //        }
+        //    }
+        //    foreach (Player currentPlayer in playerStopList)
+        //    {
+        //        Console.WriteLine("{0} has left the game with {1}", currentPlayer.Name, currentPlayer.CurrentMoney);
+        //        TotalPlayerCollection.List.Remove(currentPlayer);
+        //    }
+        //} 
+        //#endregion
 
         private void WriteScoreToDatabase(Player player)
         {

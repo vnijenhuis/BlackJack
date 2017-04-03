@@ -123,10 +123,26 @@ namespace BlackJack
             //    Console.WriteLine("You can't spend more money!");
             //} 
             #endregion
+
+            #region Game
             Game game = new Game();
             game.RunBlackJackGame();
+            #endregion
+
+            #region Simulator
+            //int players = 8;
+            //int rounds = 10000;
+            //int repeats = 5;
+            //int minimumStopScore = 16;
+            //decimal betAmount = 500.00m;
+            //bool sameScore = true;
+            //for (int i = 0; i < repeats; i++) {
+            //    SimulateGame simulator = new SimulateGame();
+            //    simulator.RunBlackJackGame(players, rounds, minimumStopScore, betAmount, sameScore);
+            //}
+            #endregion
             Console.WriteLine("Thanks for comming! Please press a key to leave.");
-            Console.ReadKey();
+            Console.ReadKey(); 
         }
     }
 }

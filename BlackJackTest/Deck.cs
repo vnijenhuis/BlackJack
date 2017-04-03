@@ -16,7 +16,7 @@ namespace BlackJack
                 List<String> types = new List<String> { "Hearts", "Diamonds", "Clubs", "Spades" };
                 foreach (String type in types)
                 {
-                    CardDeck.Add(new Card(type, "Ace", 11));
+                    CardDeck.Add(new Card(type, "Ace", 1));
                     CardDeck.Add(new Card(type, "Two", 2));
                     CardDeck.Add(new Card(type, "Three", 3));
                     CardDeck.Add(new Card(type, "Four", 4));

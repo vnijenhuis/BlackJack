@@ -20,6 +20,7 @@ namespace BlackJack
         public PlayerCollection PlayersWithBlackJack { get; set; }
         public PlayerCollection PlayersWithoutBlackJack { get; set; }
         public List<Decimal> PlayerBets { get; set; }
+        public List<Decimal> PlayerPayouts { get; set; }
 
         public Game()
         {

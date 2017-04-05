@@ -14,12 +14,14 @@ namespace BlackJackLibrary
         public Int32 HandValue { get; set; }
         public Decimal CurrentMoney { get; set; }
         public Boolean EndOfRound { get; set; }
+        public Decimal CurrentBet { get; set; }
 
         public Player(String name)
         {
             this.Name = name;
             this.PlayerCards = new List<Card>();
             this.HandValue = 0;
+            this.CurrentBet = 0.00m;
             this.CurrentMoney = 500.00m;
             this.EndOfRound = false;
         }
@@ -55,12 +57,12 @@ namespace BlackJackLibrary
             this.EndOfRound = true;
         }
 
-        public virtual Decimal DoubleDown(Deck blackJackDeck, Decimal playerBet)
+        public virtual void DoubleDown(Deck blackJackDeck)
         {
-            String currentBetInDollars = playerBet.ToString("C", new CultureInfo("en-US"));
+            String currentBetInDollars = this.CurrentBet.ToString("C", new CultureInfo("en-US"));
             Console.WriteLine("{0}, you choose to Double-down! Your current bet is {1}. With how much would you like to increase your bet? (Increase with atleast {2}).", this.Name, currentBetInDollars, currentBetInDollars);
             decimal output;
-            while (!decimal.TryParse(Console.ReadLine(), out output) || output < playerBet || output > this.CurrentMoney)
+            while (!decimal.TryParse(Console.ReadLine(), out output) || output < this.CurrentBet || output > this.CurrentMoney)
             {
                 if (output.GetType() == this.CurrentMoney.GetType())
                 {
@@ -72,16 +74,15 @@ namespace BlackJackLibrary
                     Console.WriteLine("You can't bet with {0}! Please enter the amount of cash in numbers.", output);
                 }
             }
-            playerBet += output;
+            this.CurrentBet += output;
             this.CurrentMoney -= output;
-            currentBetInDollars = playerBet.ToString("C", new CultureInfo("en-US"));
+            currentBetInDollars = this.CurrentBet.ToString("C", new CultureInfo("en-US"));
             Console.WriteLine("Your current bet was changed to {0}!.", currentBetInDollars);
             this.Hit(blackJackDeck);
             this.EndOfRound = true;
-            return playerBet;
         }
 
-        public virtual Decimal BetMoney()
+        public virtual void BetMoney()
         {
             String currentMoneyInDollars = this.CurrentMoney.ToString("C", new CultureInfo("en-US"));
             Console.WriteLine("{0}, how much do you wish to bet? You currently have {1}", this.Name, currentMoneyInDollars);
@@ -98,10 +99,10 @@ namespace BlackJackLibrary
                     Console.WriteLine("You can't bet with {0}! Please enter the amount of cash in numbers.", playerBet);
                 }
             }
+            this.CurrentBet += playerBet;
             this.CurrentMoney -= playerBet;
             String currentBetInDollars = playerBet.ToString("C", new CultureInfo("en-US"));
             Console.WriteLine("{0}, you just bet {1}, good luck!", this.Name, currentBetInDollars);
-            return playerBet;
         }
 
         public virtual void Surrender()

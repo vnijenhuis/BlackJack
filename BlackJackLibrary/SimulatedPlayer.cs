@@ -21,6 +21,7 @@ namespace BlackJackLibrary
             this.PlayerCards = new List<Card>();
             this.StopScore = stopScore;
             this.HandValue = 0;
+            this.CurrentBet = 0.00m;
             this.CurrentMoney = 500.00m;
             this.EndOfRound = false;
             this.WinCounter = 0;
@@ -79,6 +80,7 @@ namespace BlackJackLibrary
 
         public override void DoubleDown(Deck blackJackDeck)
         {
+            this.CurrentBet = this.CurrentBet * 2.50m; ;
             this.CurrentMoney -= this.CurrentBet;
             this.Hit(blackJackDeck);
             this.EndOfRound = true;

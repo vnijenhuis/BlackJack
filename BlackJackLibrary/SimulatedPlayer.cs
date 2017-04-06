@@ -10,14 +10,10 @@ namespace BlackJackLibrary
     public class SimulatedPlayer : Player
     {
         public Int32 StopScore { get; set; }
-        public Int32 WinCounter { get; set; }
-        public Int32 LossCounter { get; set; }
-        public Int32 DrawCounter { get; set; }
-        public Int32 BlackJackCounter { get; set; }
 
         public SimulatedPlayer(String name, Int32 stopScore) : base(name)
         {
-            this.Name = name;
+            this.UserName = name;
             this.PlayerCards = new List<Card>();
             this.StopScore = stopScore;
             this.HandValue = 0;

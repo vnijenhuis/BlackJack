@@ -9,21 +9,43 @@ namespace BlackJackLibrary
 {
     public class Player
     {
-        public String Name { get; set; }
+        public String UserName { get; set; }
         public List<Card> PlayerCards { get; set; }
         public Int32 HandValue { get; set; }
         public Decimal CurrentMoney { get; set; }
         public Boolean EndOfRound { get; set; }
         public Decimal CurrentBet { get; set; }
+        public Int32 WinCounter { get; set; }
+        public Int32 LossCounter { get; set; }
+        public Int32 DrawCounter { get; set; }
+        public Int32 BlackJackCounter { get; set; }
 
         public Player(String name)
         {
-            this.Name = name;
+            this.UserName = name;
             this.PlayerCards = new List<Card>();
             this.HandValue = 0;
             this.CurrentBet = 0.00m;
             this.CurrentMoney = 500.00m;
             this.EndOfRound = false;
+            this.WinCounter = 0;
+            this.LossCounter = 0;
+            this.DrawCounter = 0;
+            this.BlackJackCounter = 0;
+        }
+
+        public Player(String name, Decimal money, Int32 wins, Int32 losses, Int32 draws)
+        {
+            this.UserName = name;
+            this.PlayerCards = new List<Card>();
+            this.HandValue = 0;
+            this.CurrentBet = 0.00m;
+            this.CurrentMoney = 500.00m;
+            this.EndOfRound = false;
+            this.WinCounter = wins;
+            this.LossCounter = losses;
+            this.DrawCounter = draws;
+            this.BlackJackCounter = 0;
         }
 
         public virtual void Hit(Deck blackjackDeck)
@@ -32,7 +54,7 @@ namespace BlackJackLibrary
             this.PlayerCards.Add(card);
             if (card.ValueName.Equals("Ace"))
             {
-                Console.WriteLine("Player {0} has drawn {1}! Do you want the value to be 1 or 11? (Current Score: {2}).", this.Name, card.CardName, this.HandValue);
+                Console.WriteLine("Player {0} has drawn {1}! Do you want the value to be 1 or 11? (Current Score: {2}).", this.UserName, card.CardName, this.HandValue);
                 int output;
                 while (!int.TryParse(Console.ReadLine(), out output) && output != 1 && output != 11)
                 {
@@ -44,7 +66,7 @@ namespace BlackJackLibrary
             else
             {
                 this.CalculateHandValue();
-                Console.WriteLine("Player {0} has drawn {1} with a value of {2}! Total score is {3}.", this.Name, card.CardName, card.CardValue, this.HandValue);
+                Console.WriteLine("Player {0} has drawn {1} with a value of {2}! Total score is {3}.", this.UserName, card.CardName, card.CardValue, this.HandValue);
                 Console.ReadKey();
             }
             //Set ace values to 1;
@@ -53,14 +75,14 @@ namespace BlackJackLibrary
 
         public virtual void Stand()
         {
-            Console.WriteLine("{0} did not draw a card.", this.Name);
+            Console.WriteLine("{0} did not draw a card.", this.UserName);
             this.EndOfRound = true;
         }
 
         public virtual void DoubleDown(Deck blackJackDeck)
         {
             String currentBetInDollars = this.CurrentBet.ToString("C", new CultureInfo("en-US"));
-            Console.WriteLine("{0}, you choose to Double-down! Your current bet is {1}. With how much would you like to increase your bet? (Increase with atleast {2}).", this.Name, currentBetInDollars, currentBetInDollars);
+            Console.WriteLine("{0}, you choose to Double-down! Your current bet is {1}. With how much would you like to increase your bet? (Increase with atleast {2}).", this.UserName, currentBetInDollars, currentBetInDollars);
             decimal output;
             while (!decimal.TryParse(Console.ReadLine(), out output) || output < this.CurrentBet || output > this.CurrentMoney)
             {
@@ -85,7 +107,7 @@ namespace BlackJackLibrary
         public virtual void BetMoney()
         {
             String currentMoneyInDollars = this.CurrentMoney.ToString("C", new CultureInfo("en-US"));
-            Console.WriteLine("{0}, how much do you wish to bet? You currently have {1}", this.Name, currentMoneyInDollars);
+            Console.WriteLine("{0}, how much do you wish to bet? You currently have {1}", this.UserName, currentMoneyInDollars);
             decimal playerBet;
             while (!decimal.TryParse(Console.ReadLine(), out playerBet) || playerBet <= 99.99m || playerBet > this.CurrentMoney)
             {
@@ -102,7 +124,7 @@ namespace BlackJackLibrary
             this.CurrentBet += playerBet;
             this.CurrentMoney -= playerBet;
             String currentBetInDollars = playerBet.ToString("C", new CultureInfo("en-US"));
-            Console.WriteLine("{0}, you just bet {1}, good luck!", this.Name, currentBetInDollars);
+            Console.WriteLine("{0}, you just bet {1}, good luck!", this.UserName, currentBetInDollars);
         }
 
         public virtual void Surrender()

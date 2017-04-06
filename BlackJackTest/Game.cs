@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using BlackJackLibrary;
+using System.Data.SqlClient;
 
 namespace BlackJack
 {
@@ -16,22 +17,24 @@ namespace BlackJack
         public Deck BlackJackDeck { get; set; }
         public Dealer BlackJackDealer { get; set; }
         public Int32 AmountOfDecks { get; set; }
-        public String yesPattern = @"y|yes|yeah|ya|ye|hit me";
         public PlayerCollection PlayersWithBlackJack { get; set; }
         public PlayerCollection PlayersWithoutBlackJack { get; set; }
+        public Table BlackjackTable { get; set; }
+        public String yesPattern = @"y|yes|yeah|ya|ye|hit me";
 
         public Game()
         {
             this.TotalPlayerCollection = new PlayerCollection();
             this.PlayerCollectionCurrentGame = new PlayerCollection();
-            this.BlackJackDealer = new Dealer();
         }
 
         #region Start
         public void StartBlackJack()
         {
-            AssignPlayersToTable(1, 4);
+            AssignPlayersToTable();
             DefineDeckSize();
+            Console.ReadKey();
+            this.BlackJackDealer = BlackjackTable.Dealer;
             while (TotalPlayerCollection.List.Count != 0)
             {
                 List<Player> playerStoppedList = new List<Player>();
@@ -48,10 +51,12 @@ namespace BlackJack
                 }
                 foreach (Player player in playerStoppedList)
                 {
-                    Console.WriteLine("{0} has left the game with {1}", player.Name, player.CurrentMoney);
-                    //this.WriteScoreToDatabase(player);
-                    this.TotalPlayerCollection.List.Remove(player);
+                    Console.WriteLine("{0} has left the game with {1}.", player.UserName, player.CurrentMoney);
+                    UpdatePlayerData(player);
+                    TotalPlayerCollection.List.Remove(player);
+                    Console.WriteLine(TotalPlayerCollection.List);
                 }
+                Console.WriteLine("Players that left the game can reconnect in the next session with their username!");
                 this.PlayerCollectionCurrentGame = this.TotalPlayerCollection;
                 this.StartBlackJackRound();
             }
@@ -59,11 +64,21 @@ namespace BlackJack
         #endregion
 
         #region AssignPlayers
-        private Int32 AssignPlayersToTable(Int32 tableNumber, Int32 amountOfPlayers)
+        private void AssignPlayersToTable()
         {
-            Console.WriteLine("There are currently {0} players. How many players will play blackJack at table {1}?", amountOfPlayers, tableNumber);
+            Console.WriteLine("Which table do you wish to play at? (Table 1 to  8)");
+            int tableId = 0;
+            while (!int.TryParse(Console.ReadLine(), out tableId))
+            {
+                Console.WriteLine("Please enter a table number. (Table 1 to  8)");
+            }
+            if (tableId > 8 || tableId < 1)
+            {
+                Console.WriteLine("Ohhh, interesting...");
+            }
+            Console.WriteLine("With how many players do you wish to play at table {0}? (Maximum of 8)", tableId);
             int players = 0;
-            while (!int.TryParse(Console.ReadLine(), out players) && players > amountOfPlayers)
+            while (!int.TryParse(Console.ReadLine(), out players))
             {
                 Console.WriteLine("Please enter a number of players.");
             }
@@ -72,16 +87,18 @@ namespace BlackJack
                 players = 8;
                 Console.WriteLine("Amount of players exceeded 8. The current amount of players will be set to 8.");
             }
+            ShowAllPlayers();
             for (int i = 0; i < players; i++)
             {
                 Console.WriteLine("Please enter a player name.");
+                
                 String inputName = Console.ReadLine();
-                Player player = new Player(inputName);
+                Player player = this.DefinePlayerData(inputName);
                 TotalPlayerCollection.List.Add(player);
             }
-            Int32 remainingAmountOfPlayers = amountOfPlayers - players;
-            return remainingAmountOfPlayers;
+            BlackjackTable = new Table(tableId, TotalPlayerCollection);
         }
+
         #endregion
 
         #region DeckSize
@@ -159,7 +176,7 @@ namespace BlackJack
                             }
                             if (player.HandValue < 21)
                             {
-                                Console.WriteLine("{0}, your current hand has a total score of {1}. Hit, Stand, Double-Down or Surrender?", player.Name, player.HandValue);
+                                Console.WriteLine("{0}, your current hand has a total score of {1}. Hit, Stand, Double-Down or Surrender?", player.UserName, player.HandValue);
                                 String playerMove = Console.ReadLine().ToLower();
                                 if (Regex.IsMatch(playerMove, hitPattern))
                                 {
@@ -228,7 +245,7 @@ namespace BlackJack
             BlackJackDealer.RevealAllCards();
             foreach (Player currentPlayer in PlayerCollectionCurrentGame.List)
             {
-                Console.WriteLine("{0} has a Hand value of {1}", currentPlayer.Name, currentPlayer.HandValue);
+                Console.WriteLine("{0} has a Hand value of {1}", currentPlayer.UserName, currentPlayer.HandValue);
                 if (currentPlayer.HandValue == 21)
                 {
                     PlayersWithBlackJack.AddPlayer(currentPlayer);
@@ -238,7 +255,7 @@ namespace BlackJack
                     PlayersWithoutBlackJack.AddPlayer(currentPlayer);
                 }
                 String currentBetInDollars = currentPlayer.CurrentBet.ToString("C", new CultureInfo("en-US"));
-                Console.WriteLine("{0}'s bet of {1} was added the current Blackjack payout!", currentPlayer.Name, currentBetInDollars);
+                Console.WriteLine("{0}'s bet of {1} was added the current Blackjack payout!", currentPlayer.UserName, currentBetInDollars);
                 currentBlackJackPayout += currentPlayer.CurrentBet;
             }
             //This one Works
@@ -249,31 +266,34 @@ namespace BlackJack
             else if (PlayersWithBlackJack.List.Count >= 1 && BlackJackDealer.TotalCardValue == 21 && BlackJackDealer.DealerOpenCards.Count == 2)
             {
                 PlayerCollection playersWithNatural = new PlayerCollection();
-                foreach (Player player in PlayersWithBlackJack.List)
+                foreach (Player currentPlayer in PlayersWithBlackJack.List)
                 {
-                    if (player.PlayerCards.Count == 2)
+                    if (currentPlayer.PlayerCards.Count == 2)
                     {
-                        playersWithNatural.AddPlayer(player);
-                        BlackJackDealer.NaturalBlackJackPayout(player);
+                        playersWithNatural.AddPlayer(currentPlayer);
+                        BlackJackDealer.NaturalBlackJackPayout(currentPlayer);
                     }
                 }
                 if (playersWithNatural.List.Count == 0)
                 {
+                    Console.WriteLine("The dealer has a natural blackjack! Everyone loses their bet.");
                     BlackJackDealer.CollectBets(currentBlackJackPayout);
                 } else
                 {
                     Decimal payoutPerPlayer = currentBlackJackPayout / playersWithNatural.List.Count;
                     foreach (Player player in playersWithNatural.List)
                     {
+                        Console.WriteLine("{0}, you have a natural Black Jack! Your share of the payout is {1}!", player.UserName, payoutPerPlayer);
                         BlackJackDealer.PayBlackjackPlayerBet(player, payoutPerPlayer);
                     }
+                    BlackJackDealer.CollectBets(currentBlackJackPayout);
                 }
             }
             else if (PlayersWithBlackJack.List.Count == 1)
             {
                 Player currentPlayer = PlayersWithBlackJack.List[0];
                 String blackJackPayout = currentBlackJackPayout.ToString("C", new CultureInfo("en-US"));
-                Console.WriteLine("{0}, you have blackjack! You win {1}!", currentPlayer.Name, blackJackPayout);
+                Console.WriteLine("{0}, you have blackjack! You win {1}!", currentPlayer.UserName, blackJackPayout);
                 BlackJackDealer.PayBlackjackPlayerBet(currentPlayer, currentBlackJackPayout);
             }
             else if (PlayersWithBlackJack.List.Count > 1 && BlackJackDealer.TotalCardValue != 21)
@@ -282,7 +302,7 @@ namespace BlackJack
                 String moneyPerPlayerInDollars = moneyPerPlayer.ToString("C", new CultureInfo("en-US"));
                 foreach (Player currentPlayer in PlayersWithBlackJack.List)
                 {
-                    Console.WriteLine("{0}, you have blackjack! You share {1}!", currentPlayer.Name, moneyPerPlayerInDollars);
+                    Console.WriteLine("{0}, you have blackjack! You share {1}!", currentPlayer.UserName, moneyPerPlayerInDollars);
                     BlackJackDealer.PayBlackjackPlayerBet(currentPlayer, moneyPerPlayer);
                 }
             }
@@ -291,7 +311,7 @@ namespace BlackJack
                 foreach (Player currentPlayer in PlayersWithBlackJack.List)
                 {
                     String currentBetInDollars = currentPlayer.CurrentBet.ToString("C", new CultureInfo("en-US"));
-                    Console.WriteLine("{0}, you and the dealer have blackjack! You get your bet of {1} back.", currentPlayer.Name, currentBetInDollars);
+                    Console.WriteLine("{0}, you and the dealer have blackjack! You get your bet of {1} back.", currentPlayer.UserName, currentBetInDollars);
                     BlackJackDealer.ReturnPlayerBet(currentPlayer);
                 }
                 BlackJackDealer.CollectBets(currentBlackJackPayout);
@@ -303,7 +323,7 @@ namespace BlackJack
                 {
                     String currentBetInDollars = currentPlayer.CurrentBet.ToString("C", new CultureInfo("en-US"));
                     //Check win conditions
-                    Console.WriteLine("{0}, you have {1} and the Dealer has {2}", currentPlayer.Name, currentPlayer.HandValue, BlackJackDealer.TotalCardValue);
+                    Console.WriteLine("{0}, you have {1} and the Dealer has {2}", currentPlayer.UserName, currentPlayer.HandValue, BlackJackDealer.TotalCardValue);
                     if (BlackJackDealer.TotalCardValue > 21 && currentPlayer.HandValue < 21)
                     {
                         currentBetInDollars = (currentPlayer.CurrentBet * 2).ToString("C", new CultureInfo("en-US"));
@@ -353,15 +373,110 @@ namespace BlackJack
             }
             foreach (Player currentPlayer in playerStopList)
             {
-                Console.WriteLine("{0} has left the game with {1}", currentPlayer.Name, currentPlayer.CurrentMoney);
+                Console.WriteLine("{0} has left the game with {1}", currentPlayer.UserName, currentPlayer.CurrentMoney);
+                UpdatePlayerData(currentPlayer);
                 TotalPlayerCollection.List.Remove(currentPlayer);
             }
         }
         #endregion
 
-        private void WriteScoreToDatabase(Player player)
+        private void GenerateNewPlayer(Player player)
         {
-            throw new NotImplementedException();
+            Console.WriteLine("Adding {0} to the player database.", player.UserName);
+            SqlConnection currentConnection = new SqlConnection("Data Source=(LocalDB)\\MSSQLLocalDB;AttachDbFilename=G:\\CSharpMaart2k17\\Projects\\BlackJack\\BlackJackTest\\BlackJackPlayerDB.mdf;Integrated Security=True");
+            currentConnection.Open();
+            SqlCommand command = new SqlCommand("INSERT INTO Players (UserName, Money, Wins, Losses, Draws) VALUES (@name, @money, @wins, @losses, @draws)", currentConnection);
+            command.Parameters.Add(new SqlParameter("name", player.UserName));
+            command.Parameters.Add(new SqlParameter("money", player.CurrentMoney));
+            command.Parameters.Add(new SqlParameter("wins", player.WinCounter));
+            command.Parameters.Add(new SqlParameter("losses", player.LossCounter));
+            command.Parameters.Add(new SqlParameter("draws", player.DrawCounter));
+            command.ExecuteNonQuery();
+            currentConnection.Close();
+            currentConnection.Dispose();
+            Console.WriteLine("Finished adding {0} to the player database!", player.UserName);
+        }
+
+        private void UpdatePlayerData(Player player)
+        {
+            Console.WriteLine("Updating player stats...");
+            SqlConnection currentConnection = new SqlConnection("Data Source = (LocalDB)\\MSSQLLocalDB; AttachDbFilename = G:\\CSharpMaart2k17\\Projects\\BlackJack\\BlackJackTest\\BlackJackPlayerDB.mdf; Integrated Security = True");
+            currentConnection.Open();
+            String query = "UPDATE Players SET Money = @money, Wins = @wins, Losses = @losses, Draws = @draws WHERE UserName='" + player.UserName + "'";
+            SqlCommand command = new SqlCommand(query, currentConnection);
+            command.Parameters.Add(new SqlParameter("money", player.CurrentMoney));
+            command.Parameters.Add(new SqlParameter("wins", player.WinCounter));
+            command.Parameters.Add(new SqlParameter("losses", player.LossCounter));
+            command.Parameters.Add(new SqlParameter("draws", player.DrawCounter));
+            command.ExecuteNonQuery();
+            currentConnection.Close();
+            currentConnection.Dispose();
+            Console.WriteLine("Player data was saved in the database.");
+        }
+
+        private Player DefinePlayerData(String userName)
+        {
+            SqlConnection currentConnection = new SqlConnection("Data Source = (LocalDB)\\MSSQLLocalDB; AttachDbFilename = G:\\CSharpMaart2k17\\Projects\\BlackJack\\BlackJackTest\\BlackJackPlayerDB.mdf; Integrated Security = True");
+            currentConnection.Open();
+            String mainQuery = "SELECT * FROM Players WHERE UserName = '" + userName + "'";
+            SqlCommand command = new SqlCommand(mainQuery, currentConnection);
+            SqlDataReader dataReader = command.ExecuteReader();
+            Player player = new Player(userName);
+            while (dataReader.Read())
+            {
+                String dbUserName = dataReader.GetString(1);
+                Console.WriteLine("Hey {0} {1}", dbUserName, userName);
+                if (dbUserName.Equals(userName))
+                {
+                    Decimal currentMoney = dataReader.GetDecimal(2);
+                    Int32 wins = dataReader.GetInt32(3);
+                    Int32 losses = dataReader.GetInt32(4);
+                    Int32 draws = dataReader.GetInt32(5);
+                    player = new Player(userName, currentMoney, wins, losses, draws);
+                    String moneyAsCurrency = currentMoney.ToString("C", new CultureInfo("en-US"));
+                    Console.WriteLine("Welcome back {0}! Your current money is {1}. Wins {2}, Losses {3}, Draws {4}", userName, moneyAsCurrency, wins, losses, draws);
+                }
+                else
+                {
+                    Console.WriteLine("New Player");
+                    GenerateNewPlayer(player);
+                }
+            }
+
+            String countQuery = "SELECT Count(*) FROM Players";
+            SqlCommand countCmd = new SqlCommand(countQuery, currentConnection);
+            Int32 count = (Int32) countCmd.ExecuteScalar();
+            if (count == 0)
+            {
+                GenerateNewPlayer(player);
+            }
+            dataReader.Close();
+            currentConnection.Close();
+            currentConnection.Dispose();
+            return player;
+        }
+
+        private void ShowAllPlayers()
+        {
+            Console.ForegroundColor = ConsoleColor.Magenta;
+            Console.WriteLine("************************Player List************************");
+            String newQuery = "SELECT UserName FROM Players";
+            SqlConnection currentConnection = new SqlConnection("Data Source = (LocalDB)\\MSSQLLocalDB; AttachDbFilename = G:\\CSharpMaart2k17\\Projects\\BlackJack\\BlackJackTest\\BlackJackPlayerDB.mdf; Integrated Security = True");
+            currentConnection.Open();
+            SqlCommand command = new SqlCommand(newQuery, currentConnection);
+            SqlDataReader dataReader = command.ExecuteReader();
+            int i = 0;
+            while (dataReader.Read())
+            {
+                i++;
+                String dbUserName = dataReader.GetString(0);
+                Console.WriteLine(" {0}. \t{1}", i , dbUserName);
+            }
+            Console.WriteLine("***********************************************************");
+            Console.ResetColor();
+            dataReader.Close();
+            currentConnection.Close();
+            currentConnection.Dispose();
         }
     }
 }

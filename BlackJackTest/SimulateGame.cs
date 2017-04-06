@@ -64,7 +64,7 @@ namespace BlackJack
             {
                 Int32 totalPlayer = player.WinCounter + player.LossCounter + player.DrawCounter;
                 String currentMoneyInDollars = player.CurrentMoney.ToString("C", new CultureInfo("en-US"));
-                Console.WriteLine("{0}, RiskScore: {1}, Wins: {2}, Losses: {3} ,Draws: {4}, Total: {5}, Total BlackJack: {6}!, Total money: {7}", player.Name, player.StopScore, player.WinCounter, player.LossCounter, player.DrawCounter, totalPlayer, player.BlackJackCounter, currentMoneyInDollars);
+                Console.WriteLine("{0}, RiskScore: {1}, Wins: {2}, Losses: {3} ,Draws: {4}, Total: {5}, Total BlackJack: {6}!, Total money: {7}", player.UserName, player.StopScore, player.WinCounter, player.LossCounter, player.DrawCounter, totalPlayer, player.BlackJackCounter, currentMoneyInDollars);
             }
         }
 
@@ -85,7 +85,7 @@ namespace BlackJack
                 player.CurrentMoney = (player.CurrentMoney * rounds);
                 player.CurrentBet = betAmount;
                 String currentMoneyInDollars = player.CurrentMoney.ToString("C", new CultureInfo("en-US"));
-                Console.WriteLine("{0} starts with {1}.", player.Name, currentMoneyInDollars);
+                Console.WriteLine("{0} starts with {1}.", player.UserName, currentMoneyInDollars);
                 TotalPlayerCollection.List.Add(player);
             }
         }

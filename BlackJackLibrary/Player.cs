@@ -52,7 +52,7 @@ namespace BlackJackLibrary
         {
             Card card = blackjackDeck.DrawCard();
             this.PlayerCards.Add(card);
-            if (card.ValueName.Equals("Ace"))
+            if (card.CardRank.ToString().Equals("Ace"))
             {
                 Console.WriteLine("Player {0} has drawn {1}! Do you want the value to be 1 or 11? (Current Score: {2}).", this.UserName, card.CardName, this.HandValue);
                 int output;
@@ -155,7 +155,7 @@ namespace BlackJackLibrary
             {
                 foreach (Card playerCard in this.PlayerCards)
                 {
-                    if (playerCard.ValueName.Contains("Ace"))
+                    if (playerCard.CardRank.Equals("Ace"))
                     {
                         playerCard.CardValue = 1;
                         ace = true;

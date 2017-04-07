@@ -1,20 +1,20 @@
 ﻿using System;
+using static BlackJackLibrary.CardValue;
 
 namespace BlackJackLibrary
 {
     public class Card
     {
-        public String CardType { get; set; }
-        public String CardName { get; set; }
-        public String ValueName { get; set; }
+        public Suit CardSuit { get; private set; }
+        public Rank CardRank { get; set; }
         public Int32 CardValue { get; set; }
-
-        public Card(String type, String valueName, Int32 value)
+        public String CardName { get; private set; }
+        public Card(Suit suit, Rank rank)
         {
-            CardValue = value;
-            CardType = type;
-            ValueName = valueName;
-            CardName = ValueName + " of " + CardType;
+            this.CardSuit = suit;
+            this.CardRank = rank;
+            this.CardValue = (Int32)rank;
+            this.CardName = rank + " of " + suit;
         }
     }
 }

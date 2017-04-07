@@ -30,7 +30,7 @@ namespace BlackJackLibrary
         {
             Card card = blackjackDeck.DrawCard();
             this.PlayerCards.Add(card);
-            if (card.ValueName.Equals("Ace"))
+            if (card.CardRank.Equals("Ace"))
             {
                 if (this.HandValue > 10)
                 {
@@ -51,7 +51,7 @@ namespace BlackJackLibrary
             {
                 foreach (Card playerCard in this.PlayerCards)
                 {
-                    if (playerCard.ValueName.Contains("Ace"))
+                    if (playerCard.CardRank.Equals("Ace"))
                     {
                         ace = true;
                         this.CalculateHandValue();

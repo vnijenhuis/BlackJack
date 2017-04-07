@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
+using static BlackJackLibrary.CardValue;
 
 namespace BlackJackLibrary
 {
@@ -25,8 +27,8 @@ namespace BlackJackLibrary
         public Dealer()
         {
             this.DealerOpenCards = new List<Card>();
-            this.DealerFacedownCard = new Card("Empty", "", 0);
-            this.CasinoEarnings = 500000000.00m;
+            this.ResetFacedownCard();
+            this.CasinoEarnings = 500000.00m;
             this.FaceDownCardValue = 0;
             this.OpenCardValue = 0;
             this.WinCounter = 0;
@@ -39,7 +41,7 @@ namespace BlackJackLibrary
         public Dealer(Int32 difficultly)
         {
             this.DealerOpenCards = new List<Card>();
-            this.DealerFacedownCard = new Card("Empty", "", 0);
+            this.ResetFacedownCard();
             this.CasinoEarnings = 500000000.00m;
             this.FaceDownCardValue = 0;
             this.OpenCardValue = 0;
@@ -86,7 +88,7 @@ namespace BlackJackLibrary
         {
             this.PayoutMoney = new List<Decimal>();
             this.DealerOpenCards = new List<Card>();
-            this.DealerFacedownCard = new Card("Empty", "", 0);
+            this.ResetFacedownCard();
             this.FaceDownCardValue = 0;
             this.OpenCardValue = 0;
             this.TotalCardValue = 0;
@@ -99,10 +101,11 @@ namespace BlackJackLibrary
             Card drawnCard2 = blackjackDeck.DrawCard();
             if (this.Difficultly >= 100 && OpenCardValue == 0)
             {
-                blackjackDeck.CardDeck.Add(drawnCard);
-                drawnCard.ValueName = "Ace";
-                drawnCard.ValueName = "11";
-                blackjackDeck.CardDeck.Remove(drawnCard);
+                while (!drawnCard.CardRank.Equals("Ace"))
+                {
+                    blackjackDeck.CardDeck.Add(drawnCard);
+                    drawnCard = blackjackDeck.DrawCard();
+                }
             }
             else if (this.Difficultly >= 100 && OpenCardValue >=10)
             {
@@ -122,14 +125,20 @@ namespace BlackJackLibrary
                     blackjackDeck.ShuffleDeck();
                 }
             }
-            else if (this.Difficultly >= 75 && OpenCardValue == 0)
+            else if (this.Difficultly >= 75 && OpenCardValue == 0 && drawnCard.CardValue < 10)
             {
-                blackjackDeck.CardDeck.Add(drawnCard);
-                drawnCard.ValueName = "Jack";
-                drawnCard.ValueName = "10";
-                blackjackDeck.CardDeck.Remove(drawnCard);
+                Boolean getRankTenCard = true;
+                while (getRankTenCard)
+                {
+                    blackjackDeck.CardDeck.Add(drawnCard);
+                    drawnCard = blackjackDeck.DrawCard();
+                    if (drawnCard.CardValue >= 10)
+                    {
+                        getRankTenCard = false;
+                    }
+                }
             }
-            if (drawnCard.ValueName.Equals("Ace"))
+            if (drawnCard.CardRank.Equals("Ace"))
             {
                 if (this.TotalCardValue <= 10)
                 {
@@ -169,7 +178,7 @@ namespace BlackJackLibrary
         {
             Console.ForegroundColor = ConsoleColor.Red;
             Card drawnCard = blackjackDeck.DrawCard();
-            if (drawnCard.ValueName.Equals("Ace"))
+            if (drawnCard.CardRank.Equals("Ace"))
             {
                 if (this.TotalCardValue <= 10)
                 {
@@ -231,9 +240,21 @@ namespace BlackJackLibrary
             Console.ResetColor();
         }
 
-        public virtual void CollectBets(Decimal payout)
+        public virtual void CollectPlayerBet(Player player)
         {
-            this.CasinoEarnings = (this.CasinoEarnings + payout);
+            this.CasinoEarnings = (this.CasinoEarnings + player.CurrentBet);
+            player.LossCounter += 1;
+        }
+
+        public virtual Decimal CreateBlackjackPayout(PlayerCollection playerList)
+        {
+            Decimal blackjackPayout = 0.00m;
+            foreach (Player player in playerList.List)
+            {
+                blackjackPayout += player.CurrentBet;
+                player.LossCounter += 1;
+            }
+            return blackjackPayout;
         }
 
         public virtual void PayPlayerBet(Player player)
@@ -241,13 +262,14 @@ namespace BlackJackLibrary
             this.CasinoEarnings -= player.CurrentBet;
             player.CurrentMoney += (player.CurrentBet * 2);
             player.CurrentBet = 0.00m;
+            player.WinCounter += 1;
         }
-
 
         public virtual void ReturnPlayerBet(Player player)
         {
             player.CurrentMoney += player.CurrentBet;
             player.CurrentBet = 0.00m;
+            player.DrawCounter += 1;
         }
 
         public virtual void PayBlackjackPlayerBet(Player player, Decimal playerBlackjackPayout)
@@ -265,6 +287,11 @@ namespace BlackJackLibrary
             this.CasinoEarnings -= payout;
             player.CurrentMoney += payout;
             player.WinCounter += 1;
+        }
+
+        public void ResetFacedownCard()
+        {
+            this.DealerFacedownCard = new Card(Suit.Clubs, Rank.Two);
         }
     }
 }
